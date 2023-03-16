@@ -1,0 +1,64 @@
+Configuration Manager
+
+Microsoft Configuration Manager collecte automatiquement les hachages matériels pour les appareils Windows existants. Pour plus d’informations, 
+consultez Collecter des informations à partir de Configuration Manager pour Windows Autopilot. Vous pouvez extraire les informations de hachage de 
+Configuration Manager dans un fichier CSV.
+
+PowerShell
+Le hachage matériel d’un appareil existant est disponible via WMI (Windows Management Instrumentation), tant que cet appareil exécute une 
+version prise en charge de Windows. Vous pouvez utiliser un script PowerShell (Get-WindowsAutopilotInfo.ps1) pour obtenir le code de hachage 
+matériel et le numéro de série d’un appareil. Le numéro de série est utile pour voir rapidement à quel appareil appartient le hachage matériel.
+
+Pour utiliser ce script, vous pouvez utiliser l’une des méthodes suivantes :
+
+Téléchargez le fichier de script à partir du PowerShell Gallery et exécutez-le sur chaque ordinateur.
+Installez le script directement à partir du PowerShell Gallery.
+Pour installer le script directement et capturer le hachage matériel à partir de l’ordinateur local :
+
+Utilisez les commandes suivantes à partir d’une invite de Windows PowerShell avec élévation de privilèges :
+
+PowerShell
+
+New-Item -Type Directory -Path "C:\HWID"
+Set-Location -Path "C:\HWID"
+$env:Path += ";C:\Program Files\WindowsPowerShell\Scripts"
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+Install-Script -Name Get-WindowsAutopilotInfo
+Get-WindowsAutopilotInfo -OutputFile AutopilotHWID.csv
+
+Vous pouvez exécuter les commandes à distance si les deux conditions suivantes sont remplies :
+
+Les autorisations WMI sont en place.
+WMI est accessible via le Pare-feu Windows sur l’ordinateur distant.
+Pendant qu’OOBE est en cours d’exécution, vous pouvez commencer à charger le hachage matériel en ouvrant une invite de commandes 
+(Maj+F10 à l’invite de connexion) et en utilisant les commandes suivantes :
+
+PowerShell
+
+PowerShell.exe -ExecutionPolicy Bypass
+Install-Script -name Get-WindowsAutopilotInfo -Force
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+Get-WindowsAutopilotInfo -Online
+
+Vous êtes invité à vous connecter. Un compte avec le rôle Administrateur Intune suffit et le hachage de l’appareil est alors chargé automatiquement.
+
+Après avoir vérifié les détails du hachage de l’appareil chargé, exécutez une synchronisation dans le centre d’administration Microsoft Intune. 
+Sélectionnez Appareils>Windows>Inscription>Appareils Windows (sous programme Windows Autopilot Deployment) >Synchroniser.
+
+Une fois que l’appareil apparaît dans votre liste d’appareils et qu’un profil Autopilot est attribué, le redémarrage de l’appareil entraîne 
+l’exécution d’OOBE via le processus d’approvisionnement Windows Autopilot.
+
+Lors de la première exécution, vous êtes invité à approuver les autorisations d’inscription d’application requises.
+
+ Notes
+
+Étant donné que Intune offre des comptes gratuits (ou peu coûteux) qui ne disposent pas d’une vérification robuste et que les hachages matériels 
+4K contiennent des informations sensibles que seuls les propriétaires d’appareils doivent conserver, nous vous recommandons d’inscrire les appareils 
+via Microsoft Endpoint Manager via un hachage matériel 4K uniquement pour les tests ou d’autres scénarios limités. Dans la plupart des cas, vous devez 
+plutôt utiliser l’Espace partenaires Microsoft pour l’inscription des appareils Autopilot.
+
+Pour plus d’informations sur l’exécution du script Get-WindowsAutopilotInfo.ps1 , consultez l’aide du script à l’aide Get-Help 
+Get-WindowsAutopilotInfode.
+
+
+
